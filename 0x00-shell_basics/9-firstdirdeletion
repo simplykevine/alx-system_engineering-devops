@@ -1,0 +1,3 @@
+#!/bin/bash
+Rm -rf /tmp/my_first_directory
+
