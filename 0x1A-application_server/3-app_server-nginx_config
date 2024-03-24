@@ -1,0 +1,45 @@
+resolver 127.0.0.1;
+
+server {
+    listen 80;
+    listen [::]:80 default_server;
+    server_name 52.205.201.40;
+
+    # Add a custom header
+    add_header X-Served-By 469974-web-01;
+
+    # Define root directory and default index file
+    root /etc/nginx/index.html;
+    index index.html index.htm;
+
+    # Redirect requests to Google
+    location /redirect_me {
+        return 301 http://google.com/;
+    }
+
+    # Custom 404 error page
+    error_page 404 /404-error.html;
+    location /404 {
+        root /etc/nginx/index.html;
+        internal;
+    }
+
+    # Proxy requests to Gunicorn for /
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/ubuntu/AirBnB_clone_v2/myproject.sock;
+    }
+
+    # Proxy requests to Gunicorn for /airbnb-onepage/
+    location /airbnb-onepage/ {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    # Proxy requests to Gunicorn for /number_odd_or_even/<int:n>
+    location ~ /airbnb-dynamic/number_odd_or_even/(\d+)$ {
+        proxy_pass http://127.0.0.1:5001/number_odd_or_even/$1;
+    }
+}
